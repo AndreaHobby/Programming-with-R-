@@ -1,3 +1,3 @@
-# CTTM
-Summary Reports and Text Mining of Adverse Events Project 
+# Programming with R 
+
 # This is in the works still. 
