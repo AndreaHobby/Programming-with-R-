@@ -1,27 +1,14 @@
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.cluster import KMeans
+sum_of_squared_distances = []
+K = range(1, 10)
+for k in K:
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(tfidf_matrix)
+    sum_of_squared_distances.append(kmeans.inertia_)
 
-# Preprocess questions and answers
-df['processed_questions'] = df['Questions'].apply(preprocess)
-df['processed_answers'] = df['Answers'].apply(preprocess)
-
-# Join preprocessed text into strings for vectorization
-df['questions_text'] = df['processed_questions'].apply(lambda x: ' '.join(x))
-df['answers_text'] = df['processed_answers'].apply(lambda x: ' '.join(x))
-
-# Apply TF-IDF Vectorization
-tfidf_vectorizer = TfidfVectorizer(max_df=0.9, min_df=2, stop_words='english')
-tfidf_matrix = tfidf_vectorizer.fit_transform(df['questions_text'] + df['answers_text'])
-
-# Apply K-Means clustering to identify themes
-kmeans = KMeans(n_clusters=5, random_state=42)
-kmeans.fit(tfidf_matrix)
-
-# Assign cluster labels to the original data
-df['cluster'] = kmeans.labels_
-
-# Print cluster themes
-for cluster in range(5):
-    print(f"Cluster {cluster}:")
-    cluster_data = df[df['cluster'] == cluster]
-    print(cluster_data[['Topic', 'Subtopic', 'Questions', 'Answers']].head())
+# Plot the elbow chart
+plt.figure(figsize=(8, 6))
+plt.plot(K, sum_of_squared_distances, 'bx-')
+plt.xlabel('Number of clusters (k)')
+plt.ylabel('Sum of squared distances')
+plt.title('Elbow Method For Optimal k')
+plt.show()
