@@ -1,0 +1,40 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Load Excel file
+df = pd.read_excel('your_file.xlsx')
+
+# Create a crosstab to count occurrences of each (topic, subtopic) pair
+topic_subtopic_crosstab = pd.crosstab(df['Topic'], df['Subtopic'])
+
+# Compute correlation between topics and subtopics
+correlation_matrix = topic_subtopic_crosstab.corr()
+
+# Visualize correlation matrix using a heatmap
+plt.figure(figsize=(10,8))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=.5)
+plt.title("Correlation between Topics and Subtopics")
+plt.show()
+
+
+
+
+# Create new columns for the length of questions and answers
+df['Question_Length'] = df['Questions'].apply(lambda x: len(str(x).split()))  # Word count
+df['Answer_Length'] = df['Answers'].apply(lambda x: len(str(x).split()))      # Word count
+
+# Calculate the correlation between question length and answer length
+question_answer_correlation = df[['Question_Length', 'Answer_Length']].corr()
+
+# Print the correlation
+print("Correlation between Question Length and Answer Length:")
+print(question_answer_correlation)
+
+# Visualize with a scatter plot
+plt.figure(figsize=(6,6))
+sns.scatterplot(x='Question_Length', y='Answer_Length', data=df)
+plt.title("Question Length vs Answer Length")
+plt.xlabel("Question Length (Word Count)")
+plt.ylabel("Answer Length (Word Count)")
+plt.show()
