@@ -1,40 +1,27 @@
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 
-# Load Excel file
-df = pd.read_excel('your_file.xlsx')
+# Preprocess questions and answers
+df['processed_questions'] = df['Questions'].apply(preprocess)
+df['processed_answers'] = df['Answers'].apply(preprocess)
 
-# Create a crosstab to count occurrences of each (topic, subtopic) pair
-topic_subtopic_crosstab = pd.crosstab(df['Topic'], df['Subtopic'])
+# Join preprocessed text into strings for vectorization
+df['questions_text'] = df['processed_questions'].apply(lambda x: ' '.join(x))
+df['answers_text'] = df['processed_answers'].apply(lambda x: ' '.join(x))
 
-# Compute correlation between topics and subtopics
-correlation_matrix = topic_subtopic_crosstab.corr()
+# Apply TF-IDF Vectorization
+tfidf_vectorizer = TfidfVectorizer(max_df=0.9, min_df=2, stop_words='english')
+tfidf_matrix = tfidf_vectorizer.fit_transform(df['questions_text'] + df['answers_text'])
 
-# Visualize correlation matrix using a heatmap
-plt.figure(figsize=(10,8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', linewidths=.5)
-plt.title("Correlation between Topics and Subtopics")
-plt.show()
+# Apply K-Means clustering to identify themes
+kmeans = KMeans(n_clusters=5, random_state=42)
+kmeans.fit(tfidf_matrix)
 
+# Assign cluster labels to the original data
+df['cluster'] = kmeans.labels_
 
-
-
-# Create new columns for the length of questions and answers
-df['Question_Length'] = df['Questions'].apply(lambda x: len(str(x).split()))  # Word count
-df['Answer_Length'] = df['Answers'].apply(lambda x: len(str(x).split()))      # Word count
-
-# Calculate the correlation between question length and answer length
-question_answer_correlation = df[['Question_Length', 'Answer_Length']].corr()
-
-# Print the correlation
-print("Correlation between Question Length and Answer Length:")
-print(question_answer_correlation)
-
-# Visualize with a scatter plot
-plt.figure(figsize=(6,6))
-sns.scatterplot(x='Question_Length', y='Answer_Length', data=df)
-plt.title("Question Length vs Answer Length")
-plt.xlabel("Question Length (Word Count)")
-plt.ylabel("Answer Length (Word Count)")
-plt.show()
+# Print cluster themes
+for cluster in range(5):
+    print(f"Cluster {cluster}:")
+    cluster_data = df[df['cluster'] == cluster]
+    print(cluster_data[['Topic', 'Subtopic', 'Questions', 'Answers']].head())
